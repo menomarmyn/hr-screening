@@ -15,7 +15,7 @@ def main() -> None:
     assert is_postgres(), "Нужен DATABASE_URL на PostgreSQL"
     init_db()
     db = SessionLocal()
-    desc = (DATA / "vacancy_koz_ai_fullstack.txt").read_text()
+    desc = (DATA / "vacancy_koz_ai_fullstack.txt").read_text(encoding="utf-8")
     v = Vacancy(title="smoke", company="KOZ AI", description=desc, requirements=extract_requirements(desc))
     db.add(v)
     db.commit()

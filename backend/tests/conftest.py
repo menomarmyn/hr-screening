@@ -26,7 +26,7 @@ def client():
 
 @pytest.fixture(scope="session")
 def vacancy(client):
-    desc = (DATA / "vacancy_koz_ai_fullstack.txt").read_text()
+    desc = (DATA / "vacancy_koz_ai_fullstack.txt").read_text(encoding="utf-8")
     r = client.post("/api/vacancies", json={"title": "Fullstack AI Engineer", "company": "KOZ AI", "description": desc})
     assert r.status_code == 200, r.text
     return r.json()

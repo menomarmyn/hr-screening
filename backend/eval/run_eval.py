@@ -47,8 +47,8 @@ def run(provider_name: str, model: str | None) -> dict:
 
     init_db()
     db = SessionLocal()
-    labels = json.loads((DATA / "eval_labels.json").read_text())
-    desc = (DATA / labels["vacancy_file"]).read_text()
+    labels = json.loads((DATA / "eval_labels.json").read_text(encoding="utf-8"))
+    desc = (DATA / labels["vacancy_file"]).read_text(encoding="utf-8")
     provider = get_provider(provider_name, model)
     reqs = extract_requirements(desc, provider)
     v = Vacancy(title="Fullstack AI Engineer", company="KOZ AI", description=desc, requirements=reqs)
@@ -103,9 +103,9 @@ def main() -> None:
     args = p.parse_args()
     results = [run(name, args.model) for name in (args.provider or ["mock"])]
     RESULTS.mkdir(exist_ok=True)
-    (RESULTS / "latest.json").write_text(json.dumps(results, ensure_ascii=False, indent=2))
+    (RESULTS / "latest.json").write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
     md = to_markdown(results)
-    (RESULTS / "latest.md").write_text(md)
+    (RESULTS / "latest.md").write_text(md, encoding="utf-8")
     print(md)
 
 
