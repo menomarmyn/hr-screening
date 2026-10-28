@@ -1,0 +1,22 @@
+Мадина Жаксылык
+Fullstack Developer
++7 708 444 55 66 | madina.zh@example.com | github.com/madina-example
+
+Опыт: 3 года
+
+2023 — н.в. Fullstack Developer, SaaS для HR «HireFlow»
+- Backend на Python (FastAPI), PostgreSQL, Redis; frontend на React + TypeScript.
+- Реализовала функцию AI-подсказок для рекрутеров: интеграция Anthropic Claude API и OpenAI API, function calling, structured outputs, логирование стоимости запросов.
+- Семантический поиск по вакансиям: эмбеддинги + pgvector.
+- Docker Compose для локальной разработки, CI/CD на GitHub Actions, деплой на Linux-сервер.
+- Интеграция с amoCRM через REST API.
+
+2022 — 2023 Junior Web Developer, агентство
+- JavaScript, Node.js, React, MySQL.
+
+Навыки: Python, TypeScript, JavaScript, React, FastAPI, PostgreSQL, Redis, pgvector, Docker, Git, Linux, Claude API, OpenAI API, REST.
+Использую Cursor и Claude Code для прототипирования, пишу тесты на pytest и Vitest.
+
+Пет-проекты: MCP-сервер для своего таск-трекера.
+
+Образование: SDU, Computer Science, 2022

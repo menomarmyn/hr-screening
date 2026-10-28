@@ -1,0 +1,61 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: hr
+      POSTGRES_PASSWORD: hr
+      POSTGRES_DB: hr
+    volumes: [pgdata:/var/lib/postgresql/data]
+    ports: ["5432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hr"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  api:
+    build: ./backend
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://hr:hr@db:5432/hr
+      REDIS_URL: redis://redis:6379/0
+      OLLAMA_BASE_URL: http://ollama:11434/v1
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_started }
+    ports: ["8000:8000"]
+
+  worker:
+    build: ./backend
+    command: celery -A app.tasks worker --loglevel=info --concurrency=4
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://hr:hr@db:5432/hr
+      REDIS_URL: redis://redis:6379/0
+      OLLAMA_BASE_URL: http://ollama:11434/v1
+    depends_on:
+      db: { condition: service_healthy }
+      redis: { condition: service_started }
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_KEY: ${API_KEY:-dev-key}
+    depends_on: [api]
+    ports: ["3000:80"]
+
+  # Локальная LLM для закрытого контура: docker compose --profile local up
+  # затем: docker compose exec ollama ollama pull qwen2.5:7b
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["local"]
+    volumes: [ollama:/root/.ollama]
+    ports: ["11434:11434"]
+
+volumes:
+  pgdata:
+  ollama:

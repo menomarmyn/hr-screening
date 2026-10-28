@@ -1,0 +1,21 @@
+Айгерим Нурланова
+ML / AI Engineer
++7 705 999 88 77, aigerim.n@example.com
+
+Опыт: 5 лет
+
+2023 — н.в. AI Engineer, «Kaspi-like Marketplace» (крупная e-commerce компания)
+- LLM-агенты для службы поддержки: tool calling, многоагентная система на LangGraph (маршрутизатор + специализированные агенты).
+- RAG по базе знаний: LlamaIndex, Qdrant, гибридный поиск, оценка качества (RAGAS), снижение стоимости на 40% за счёт кэширования и выбора моделей.
+- Сравнение моделей OpenAI, Anthropic Claude и Google Gemini по качеству и цене.
+- Развёртывание локальных моделей через Ollama для тестов.
+- Сервисы на Python (FastAPI), Docker, Linux, Git.
+
+2021 — 2023 Data Scientist, банк
+- Модели кредитного скоринга, SQL, PostgreSQL, ETL на Airflow, дашборды в Power BI.
+
+Навыки: Python, FastAPI, SQL, PostgreSQL, Docker, Git, Linux, OpenAI, Anthropic, Gemini, LangChain, LangGraph, LlamaIndex, Qdrant, embeddings, Airflow, Power BI.
+Фронтенд: базовый JavaScript, делала простые интерфейсы на Streamlit.
+AI-инструменты: Cursor.
+
+Образование: магистратура, Назарбаев Университет, Data Science

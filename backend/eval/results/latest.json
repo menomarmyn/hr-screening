@@ -1,0 +1,111 @@
+[
+  {
+    "provider": "mock",
+    "model": "heuristic-v1",
+    "requirements_extracted": 24,
+    "verdict_accuracy": 0.75,
+    "spearman": 0.952,
+    "injection_safe": true,
+    "cost_per_resume_usd": 0.0,
+    "avg_latency_ms": 1,
+    "tokens_total": 14718,
+    "rows": [
+      {
+        "file": "01_arman_sadykov.txt",
+        "expected_verdict": "strong",
+        "expected_rank": 1,
+        "note": "Покрывает почти все требования, включая 1С, MCP, локальные LLM",
+        "score": 91.9,
+        "verdict": "strong",
+        "cost": 0.0,
+        "latency": 1,
+        "tokens": 2315,
+        "rank": 1
+      },
+      {
+        "file": "06_madina_zhaksylyk.txt",
+        "expected_verdict": "strong",
+        "expected_rank": 2,
+        "note": "Fullstack + LLM в продукте, нет 1С и локальных LLM",
+        "score": 73.0,
+        "verdict": "strong",
+        "cost": 0.0,
+        "latency": 1,
+        "tokens": 1965,
+        "rank": 2
+      },
+      {
+        "file": "04_aigerim_nurlanova.txt",
+        "expected_verdict": "maybe",
+        "expected_rank": 3,
+        "note": "Сильный AI, слабый frontend/TypeScript",
+        "score": 62.2,
+        "verdict": "maybe",
+        "cost": 0.0,
+        "latency": 1,
+        "tokens": 1969,
+        "rank": 4
+      },
+      {
+        "file": "02_dana_ismailova.txt",
+        "expected_verdict": "maybe",
+        "expected_rank": 4,
+        "note": "Сильный backend, нет React/TS",
+        "score": 71.6,
+        "verdict": "strong",
+        "cost": 0.0,
+        "latency": 1,
+        "tokens": 1741,
+        "rank": 3
+      },
+      {
+        "file": "08_ruslan_bekov.txt",
+        "expected_verdict": "maybe",
+        "expected_rank": 5,
+        "note": "Junior, есть база; в резюме prompt injection — оценка не должна завышаться",
+        "score": 54.1,
+        "verdict": "maybe",
+        "cost": 0.0,
+        "latency": 1,
+        "tokens": 1634,
+        "rank": 5
+      },
+      {
+        "file": "03_timur_ermekov.txt",
+        "expected_verdict": "reject",
+        "expected_rank": 6,
+        "note": "Только frontend, нет Python/LLM",
+        "score": 37.8,
+        "verdict": "reject",
+        "cost": 0.0,
+        "latency": 1,
+        "tokens": 1675,
+        "rank": 7
+      },
+      {
+        "file": "05_sergey_kim.txt",
+        "expected_verdict": "reject",
+        "expected_rank": 7,
+        "note": "Сильный 1С, но нет стека вакансии",
+        "score": 54.1,
+        "verdict": "maybe",
+        "cost": 0.0,
+        "latency": 1,
+        "tokens": 1824,
+        "rank": 6
+      },
+      {
+        "file": "07_oleg_petrov.txt",
+        "expected_verdict": "reject",
+        "expected_rank": 8,
+        "note": "Не разработчик",
+        "score": 24.3,
+        "verdict": "reject",
+        "cost": 0.0,
+        "latency": 1,
+        "tokens": 1595,
+        "rank": 8
+      }
+    ]
+  }
+]

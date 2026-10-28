@@ -1,0 +1,29 @@
+Арман Садыков
+Fullstack AI Engineer, Алматы
+Телефон: +7 701 555 12 34, email: arman.sadykov@example.com, t.me/arman_dev
+GitHub: github.com/arman-example
+
+О себе
+6 лет в коммерческой разработке, последние 2 года — AI-продукты для B2B-клиентов. Довожу решения до production и сопровождаю внедрение у заказчика.
+
+Опыт
+2023 — н.в. Senior Fullstack Engineer, «DataBridge» (интегратор для ритейла и банков)
+- Спроектировал и запустил RAG-систему по внутренней документации банка: PostgreSQL + pgvector, эмбеддинги OpenAI, переранжирование, оценка качества ответов на наборе из 200 вопросов.
+- Разработал AI-агента для обработки заявок клиентов на LangGraph: function calling, structured outputs, интеграция с CRM Битрикс24 и 1С через OData.
+- Написал MCP-сервер для доступа агентов к внутренним справочникам.
+- Развернул локальную LLM (Qwen 2.5 через vLLM) в закрытом контуре заказчика по требованиям информационной безопасности.
+- Backend на Python (FastAPI), очереди на Celery + Redis, аналитика на ClickHouse.
+- Frontend: React + TypeScript, админ-панель и дашборды.
+- Участвовал во встречах с заказчиками, проводил техническое обследование, писал ТЗ.
+
+2019 — 2023 Python/JS Developer, «WebStudio KZ»
+- REST API на Django и FastAPI, PostgreSQL, проектирование схем БД.
+- SPA на React, TypeScript.
+- Docker, Docker Compose, CI/CD на GitHub Actions, сервера на Linux (Ubuntu).
+
+Навыки
+Python, TypeScript, JavaScript, React, FastAPI, Django, PostgreSQL, SQL, Redis, Celery, ClickHouse, Docker, Git, Linux, OpenAI API, Anthropic Claude API, LangChain, LangGraph, LlamaIndex, pgvector, Qdrant, MCP, vLLM, Ollama.
+Ежедневно использую Cursor и Claude Code, ревьюю AI-сгенерированный код, пишу тесты на pytest.
+
+Образование
+КБТУ, информационные системы, 2019

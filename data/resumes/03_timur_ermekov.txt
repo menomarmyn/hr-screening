@@ -1,0 +1,19 @@
+Тимур Ермеков
+Frontend Developer (React)
+email: timur.erm@example.com
+
+3 года опыта во frontend-разработке.
+
+2022 — н.в. Frontend Developer, e-commerce «ShopKZ»
+- Разработка интерфейсов на React, TypeScript, Next.js, Redux Toolkit.
+- Интеграция с REST API бэкенда, оптимизация производительности (Lighthouse 95+).
+- Покрытие компонентов тестами на Jest и React Testing Library.
+- Git, код-ревью, Storybook.
+
+2021 — 2022 Junior Frontend, веб-студия
+- Вёрстка, JavaScript, Vue.js.
+
+Навыки: JavaScript, TypeScript, React, Next.js, HTML/CSS, Git, Jest, Figma.
+Начал изучать Python, прошёл курс по основам.
+
+Образование: МУИТ, 2021

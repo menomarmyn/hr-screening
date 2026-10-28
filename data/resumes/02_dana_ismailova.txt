@@ -1,0 +1,23 @@
+Дана Исмаилова
+Python Backend Developer
++7 777 123 45 67 | dana.i@example.com
+
+Опыт работы — 4 года
+
+2022 — н.в. Backend Developer, финтех-стартап «PayNow»
+- Разработка микросервисов на FastAPI, PostgreSQL, Redis.
+- Интеграция внешних API платёжных систем, вебхуки.
+- Добавила в продукт чат-бота поддержки на базе OpenAI API: классификация обращений, structured outputs в JSON.
+- Пет-проект: RAG по документации на LangChain и Chroma, эмбеддинги.
+- Docker, Docker Compose, GitLab CI, Linux.
+
+2020 — 2022 Junior Python Developer, «LogiTech»
+- Django, Celery, SQL, отчёты для склада.
+- Немного JavaScript (jQuery) для внутренних форм.
+
+Навыки
+Python, FastAPI, Django, PostgreSQL, SQL, Redis, Celery, Docker, Git, Linux, OpenAI API, LangChain, Chroma.
+Пользуюсь GitHub Copilot.
+
+Образование
+НУ им. аль-Фараби, математика, 2020
