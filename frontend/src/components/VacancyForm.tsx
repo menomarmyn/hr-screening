@@ -3,7 +3,7 @@ import { api } from "../api";
 import type { Vacancy } from "../types";
 
 export function VacancyForm({ onCreated, onCancel }: { onCreated: (v: Vacancy) => void; onCancel?: () => void }) {
-  const [title, setTitle] = useState("Fullstack AI Engineer");
+  const [title, setTitle] = useState("");
   const [company, setCompany] = useState("");
   const [description, setDescription] = useState("");
   const [busy, setBusy] = useState(false);
@@ -23,33 +23,33 @@ export function VacancyForm({ onCreated, onCancel }: { onCreated: (v: Vacancy) =
   };
 
   return (
-    <form className="card form" onSubmit={submit}>
+    <form className="vacancy-form" onSubmit={submit}>
       <h1>Новая вакансия</h1>
-      <p className="muted">Вставьте текст вакансии целиком — требования будут извлечены автоматически.</p>
-      <div className="row">
+      <p className="muted">Вставьте текст вакансии целиком, как на hh.ru. Требования выделятся автоматически, их можно будет поправить.</p>
+      <div className="fields">
         <label>
           Должность
-          <input value={title} onChange={(e) => setTitle(e.target.value)} required />
+          <input value={title} onChange={(e) => setTitle(e.target.value)} required placeholder="Fullstack AI Engineer" />
         </label>
         <label>
           Компания
-          <input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Название компании" />
+          <input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="KOZ AI" />
         </label>
       </div>
       <label>
         Текст вакансии
-        <textarea rows={16} value={description} onChange={(e) => setDescription(e.target.value)} required placeholder="Что мы ожидаем от Вас: ..." />
+        <textarea rows={14} value={description} onChange={(e) => setDescription(e.target.value)} required placeholder={"Что мы ожидаем от Вас:\n— Уверенное владение Python…\n\nБудет преимуществом:\n— Опыт интеграции с 1С…"} />
       </label>
       {error && <div className="alert">{error}</div>}
       <div className="actions">
+        <button className="btn primary" disabled={busy}>
+          {busy ? "Выделяю требования…" : "Создать вакансию"}
+        </button>
         {onCancel && (
-          <button type="button" className="btn ghost" onClick={onCancel}>
+          <button type="button" className="btn quiet" onClick={onCancel}>
             Отмена
           </button>
         )}
-        <button className="btn primary" disabled={busy}>
-          {busy ? "Извлекаю требования…" : "Создать"}
-        </button>
       </div>
     </form>
   );

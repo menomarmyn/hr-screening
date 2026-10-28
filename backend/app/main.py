@@ -44,10 +44,14 @@ def _vacancy(db: Session, vid: int) -> Vacancy:
     return v
 
 
-def _cand_out(c: Candidate, s: Screening | None) -> CandidateOut:
+def _cand_out(c: Candidate, s: Screening | None, requirements: list[dict] | None = None) -> CandidateOut:
+    fingerprint: list[str] = []
+    if s and requirements:
+        by_id = {m["requirement_id"]: m["status"] for m in s.result.get("matches", [])}
+        fingerprint = [by_id.get(r["id"], "missing") for r in requirements]
     return CandidateOut(
         id=c.id, vacancy_id=c.vacancy_id, name=c.name, filename=c.filename, status=c.status, error=c.error,
-        crm_id=c.crm_id, score=s.score if s else None, verdict=s.verdict if s else None,
+        crm_id=c.crm_id, score=s.score if s else None, verdict=s.verdict if s else None, fingerprint=fingerprint,
     )
 
 
@@ -133,10 +137,10 @@ async def upload_resumes(
 
 @app.get("/api/vacancies/{vid}/candidates", response_model=list[CandidateOut], dependencies=[Depends(require_key)])
 def ranking(vid: int, db: Session = Depends(get_db)):
-    _vacancy(db, vid)
+    v = _vacancy(db, vid)
     rows = db.query(Candidate, Screening).outerjoin(Screening, Screening.candidate_id == Candidate.id).filter(Candidate.vacancy_id == vid).all()
     rows.sort(key=lambda x: (x[1].score if x[1] else -1), reverse=True)
-    return [_cand_out(c, s) for c, s in rows]
+    return [_cand_out(c, s, v.requirements) for c, s in rows]
 
 
 @app.get("/api/candidates/{cid}", response_model=CandidateDetail, dependencies=[Depends(require_key)])

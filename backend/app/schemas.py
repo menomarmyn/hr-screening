@@ -63,6 +63,8 @@ class CandidateOut(BaseModel):
     crm_id: str = ""
     score: float | None = None
     verdict: str | None = None
+    # статус по каждому требованию в порядке вакансии: met | partial | missing
+    fingerprint: list[str] = []
 
 
 class CandidateDetail(CandidateOut):

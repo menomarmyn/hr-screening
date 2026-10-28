@@ -28,6 +28,7 @@ export interface Candidate {
   crm_id: string;
   score: number | null;
   verdict: Verdict | null;
+  fingerprint?: MatchStatus[];
 }
 
 export interface RequirementMatch {

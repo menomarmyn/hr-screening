@@ -76,3 +76,10 @@ def test_mcp_tools_registered():
 
     names = {t.name for t in asyncio.run(mcp.list_tools())}
     assert {"rank_candidates", "search_candidates", "export_candidate"} <= names
+
+
+def test_ranking_fingerprint(client, vacancy, screened):
+    ranking = client.get(f"/api/vacancies/{vacancy['id']}/candidates").json()
+    fp = ranking[0]["fingerprint"]
+    assert len(fp) == len(vacancy["requirements"])
+    assert set(fp) <= {"met", "partial", "missing"}

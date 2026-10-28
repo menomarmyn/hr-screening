@@ -13,6 +13,7 @@ from app.schemas import Requirement, RequirementList, RequirementMatch, Screenin
 
 MUST_HEADINGS = ("что мы ожидаем", "требования", "мы ожидаем", "необходимо", "обязательно")
 NICE_HEADINGS = ("будет преимуществом", "плюсом", "преимуществом", "желательно", "nice to have")
+VERDICT_RU = {"strong": "пригласить", "maybe": "рассмотреть", "reject": "отказ"}
 SKIP_HEADINGS = ("чем предстоит", "мы предлагаем", "условия", "обязанности", "о компании", "задачи")
 
 
@@ -159,11 +160,12 @@ class MockProvider(LLMProvider):
                 for i, c in enumerate(rows, 1):
                     score = f"{c['score']:.0f}/100" if c.get("score") is not None else "—"
                     extra = f" — {c['snippet']}" if c.get("snippet") else ""
-                    parts.append(f"{i}. #{c['id']} {c.get('name') or c.get('filename')}: {score} ({c.get('verdict') or 'нет оценки'}){extra}")
+                    verdict = VERDICT_RU.get(c.get("verdict") or "", "нет оценки")
+                    parts.append(f"{i}. #{c['id']} {c.get('name') or c.get('filename')}: {score}, {verdict}{extra}")
             elif r["name"] == "get_candidate":
                 s = data.get("screening") or {}
                 parts.append(
-                    f"#{data['id']} {data.get('name')}: {data.get('score')} баллов, вердикт {data.get('verdict')}.\n"
+                    f"#{data['id']} {data.get('name')}: {data.get('score')} баллов, {VERDICT_RU.get(data.get('verdict') or '', 'нет оценки')}.\n"
                     f"Сильные стороны: {'; '.join(s.get('strengths', [])[:4])}\nРиски: {'; '.join(s.get('risks', [])[:3]) or 'нет'}"
                 )
             else:

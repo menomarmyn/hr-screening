@@ -1,7 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "../api";
-import type { Candidate, CandidateDetail, Vacancy } from "../types";
-import { ScoreBadge, VerdictPill } from "./ui";
+import type { Candidate, CandidateDetail, MatchStatus, Vacancy } from "../types";
+import { Fingerprint, Score, Spinner, StatusDot, VerdictTag, plural } from "./ui";
+
+/** Старый API может не отдавать fingerprint — тогда собираем его из деталей кандидата. */
+async function withFingerprints(list: Candidate[], vacancy: Vacancy): Promise<Candidate[]> {
+  return Promise.all(
+    list.map(async (c) => {
+      if (c.status !== "screened" || (c.fingerprint && c.fingerprint.length)) return c;
+      const d = await api.candidate(c.id);
+      const by = Object.fromEntries((d.screening?.matches ?? []).map((m) => [m.requirement_id, m.status]));
+      return { ...c, fingerprint: vacancy.requirements.map((r) => (by[r.id] ?? "missing") as MatchStatus) };
+    }),
+  );
+}
 
 export function CandidatesView({ vacancy, provider, onChange }: { vacancy: Vacancy; provider: string; onChange: () => void }) {
   const [items, setItems] = useState<Candidate[]>([]);
@@ -12,17 +24,18 @@ export function CandidatesView({ vacancy, provider, onChange }: { vacancy: Vacan
   const input = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
-    const list = await api.candidates(vacancy.id);
+    const list = await withFingerprints(await api.candidates(vacancy.id), vacancy);
     setItems(list);
+    setSelected((s) => s ?? list[0]?.id ?? null);
     return list;
-  }, [vacancy.id]);
+  }, [vacancy]);
 
   useEffect(() => {
     setSelected(null);
     load();
   }, [load]);
 
-  // Пока есть кандидаты в обработке — опрашиваем API (скрининг идёт в фоне через Celery)
+  // Скрининг идёт в фоне — пока есть необработанные, опрашиваем API
   useEffect(() => {
     if (!items.some((c) => c.status === "uploaded" || c.status === "processing")) return;
     const t = setTimeout(load, 1500);
@@ -44,12 +57,17 @@ export function CandidatesView({ vacancy, provider, onChange }: { vacancy: Vacan
     }
   };
 
+  const mustCount = vacancy.requirements.filter((r) => r.kind === "must").length;
+
   return (
-    <div className="split">
-      <section className="card">
+    <div className="board">
+      <section className="roster" aria-label="Рейтинг кандидатов">
         <div
-          className={`dropzone ${drag ? "drag" : ""}`}
+          className={`drop ${drag ? "is-drag" : ""}`}
           onClick={() => input.current?.click()}
+          onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && input.current?.click()}
+          role="button"
+          tabIndex={0}
           onDragOver={(e) => {
             e.preventDefault();
             setDrag(true);
@@ -62,56 +80,64 @@ export function CandidatesView({ vacancy, provider, onChange }: { vacancy: Vacan
           }}
         >
           <input ref={input} type="file" multiple accept=".pdf,.docx,.txt,.md" hidden onChange={(e) => upload(Array.from(e.target.files ?? []))} />
-          <strong>{uploading ? "Загружаю…" : "Перетащите резюме сюда"}</strong>
-          <span className="muted">PDF, DOCX или TXT · можно несколько файлов · модель: {provider}</span>
+          <span className="drop-plus" aria-hidden>
+            +
+          </span>
+          <span>
+            <strong>{uploading ? "Загружаю резюме…" : "Добавить резюме"}</strong>
+            <span className="muted"> — перетащите PDF, DOCX или TXT, можно сразу пачкой</span>
+          </span>
         </div>
         {error && <div className="alert">{error}</div>}
 
+        {items.length > 0 && (
+          <div className="legend" aria-hidden>
+            <span>
+              Каждая полоса — {vacancy.requirements.length} {plural(vacancy.requirements.length, "требование", "требования", "требований")}: сначала {mustCount} обязательных, затем «плюсом»
+            </span>
+            <span className="legend-keys">
+              <span>
+                <i className="fp-cell s-met" /> есть
+              </span>
+              <span>
+                <i className="fp-cell s-partial" /> частично
+              </span>
+              <span>
+                <i className="fp-cell s-missing" /> нет
+              </span>
+            </span>
+          </div>
+        )}
+
         {items.length === 0 ? (
-          <p className="empty">Кандидатов пока нет. Примеры резюме лежат в папке data/resumes.</p>
+          <div className="empty">
+            <p>Здесь появится рейтинг. Загрузите первые резюме — скрининг займёт несколько секунд на каждое.</p>
+          </div>
         ) : (
-          <table className="table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Кандидат</th>
-                <th>Балл</th>
-                <th>Вердикт</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((c, i) => (
-                <tr key={c.id} className={c.id === selected ? "selected" : ""} onClick={() => setSelected(c.id)}>
-                  <td className="mono muted">{i + 1}</td>
-                  <td>
-                    <div className="cand-name">{c.name || c.filename}</div>
-                    <div className="muted small">
-                      #{c.id} · {c.filename}
-                      {c.crm_id && <span className="chip ok">в CRM</span>}
-                    </div>
-                  </td>
-                  <td>
-                    {c.status === "screened" ? (
-                      <ScoreBadge score={c.score!} />
-                    ) : c.status === "failed" ? (
-                      <span className="chip bad" title={c.error}>
-                        ошибка
-                      </span>
-                    ) : (
-                      <span className="spinner" />
-                    )}
-                  </td>
-                  <td>{c.verdict && <VerdictPill verdict={c.verdict} />}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <ol className="rows">
+            {items.map((c, i) => (
+              <li key={c.id}>
+                <button className={`row ${c.id === selected ? "is-active" : ""} ${c.verdict === "reject" ? "is-dim" : ""}`} onClick={() => setSelected(c.id)}>
+                  <span className="row-rank">{i + 1}</span>
+                  <span className="row-who">
+                    <span className="row-name">{c.name || c.filename}</span>
+                    <span className="row-meta">
+                      {c.verdict ? <VerdictTag verdict={c.verdict} /> : <span className="muted">{c.status === "failed" ? "ошибка обработки" : "в обработке"}</span>}
+                      {c.crm_id && <span className="tag">в CRM</span>}
+                    </span>
+                  </span>
+                  <Fingerprint statuses={c.fingerprint ?? []} requirements={vacancy.requirements} />
+                  <span className="row-score">{c.status === "screened" ? <Score score={c.score!} verdict={c.verdict} /> : c.status === "failed" ? "—" : <Spinner />}</span>
+                </button>
+              </li>
+            ))}
+          </ol>
         )}
       </section>
 
-      <section className="card detail">
+      <section className="dossier" aria-label="Карточка кандидата">
         {selected ? (
-          <CandidatePanel
+          <Dossier
             key={selected}
             id={selected}
             vacancy={vacancy}
@@ -127,14 +153,16 @@ export function CandidatesView({ vacancy, provider, onChange }: { vacancy: Vacan
             }}
           />
         ) : (
-          <p className="empty">Выберите кандидата, чтобы увидеть разбор по требованиям.</p>
+          <div className="empty">
+            <p>Выберите кандидата слева, чтобы открыть разбор по требованиям.</p>
+          </div>
         )}
       </section>
     </div>
   );
 }
 
-function CandidatePanel({
+function Dossier({
   id,
   vacancy,
   provider,
@@ -150,6 +178,7 @@ function CandidatePanel({
   const [d, setD] = useState<CandidateDetail | null>(null);
   const [showResume, setShowResume] = useState(false);
   const [note, setNote] = useState("");
+  const [openReq, setOpenReq] = useState<string | null>(null);
 
   const load = useCallback(() => api.candidate(id).then(setD), [id]);
   useEffect(() => {
@@ -162,110 +191,146 @@ function CandidatePanel({
     }
   }, [d, load]);
 
-  if (!d) return <span className="spinner" />;
+  if (!d) return <Spinner label="Открываю карточку" />;
   const s = d.screening;
-  const reqById = Object.fromEntries(vacancy.requirements.map((r) => [r.id, r]));
 
-  const act = async (fn: () => Promise<unknown>, msg: string) => {
+  const act = async (fn: () => Promise<unknown>, done: string) => {
     try {
       await fn();
-      setNote(msg);
+      setNote(done);
       await load();
       onChanged();
     } catch (e) {
-      setNote((e as Error).message);
+      setNote(`Не получилось: ${(e as Error).message}`);
     }
   };
 
+  const matchBy = Object.fromEntries((s?.matches ?? []).map((m) => [m.requirement_id, m]));
+  const statuses = vacancy.requirements.map((r) => (matchBy[r.id]?.status ?? "missing") as MatchStatus);
+  const met = statuses.filter((x) => x === "met").length;
+  const experience = [s?.seniority && s.seniority !== "unknown" ? s.seniority : null, s?.years_of_experience != null ? `${s.years_of_experience} лет опыта` : null]
+    .filter(Boolean)
+    .join(", ");
+
   return (
-    <div>
-      <div className="detail-head">
+    <article>
+      <header className="dossier-head">
         <div>
           <h2>{d.name || d.filename}</h2>
-          <div className="muted small">
-            {s?.seniority !== "unknown" && s?.seniority} {s?.years_of_experience != null && `· ${s.years_of_experience} лет опыта`}
-          </div>
+          <p className="muted">
+            {experience || "Опыт не указан"}. Файл {d.filename}
+          </p>
         </div>
-        {d.score != null && <ScoreBadge score={d.score} large />}
-      </div>
+        {d.score != null && (
+          <div className="dossier-score">
+            <Score score={d.score} verdict={d.verdict} size="xl" />
+            {d.verdict && <VerdictTag verdict={d.verdict} />}
+          </div>
+        )}
+      </header>
 
-      <div className="actions wrap">
-        <button className="btn" onClick={() => act(() => api.exportTo(id, "bitrix24"), "Отправлено в Битрикс24 (см. журнал интеграций)")}>
-          → Битрикс24
+      {s && (
+        <div className="dossier-print">
+          <Fingerprint statuses={statuses} requirements={vacancy.requirements} size="lg" />
+          <span className="muted">
+            Подтверждено {met} из {statuses.length}
+          </span>
+        </div>
+      )}
+
+      <div className="actions">
+        <button className="btn primary" onClick={() => act(() => api.exportTo(id, "bitrix24"), "Кандидат отправлен в Битрикс24. Запрос записан в журнал интеграций.")}>
+          Отправить в Битрикс24
         </button>
-        <button className="btn" onClick={() => act(() => api.exportTo(id, "1c"), "Отправлено в 1С (см. журнал интеграций)")}>
-          → 1С
+        <button className="btn" onClick={() => act(() => api.exportTo(id, "1c"), "Кандидат отправлен в 1С. Запрос записан в журнал интеграций.")}>
+          Отправить в 1С
         </button>
-        <button className="btn ghost" onClick={() => act(() => api.rescreen(id, provider), `Повторный скрининг: ${provider}`)}>
-          Перепроверить ({provider})
+        <button className="btn quiet" onClick={() => act(() => api.rescreen(id, provider), `Перепроверяю моделью ${provider}`)}>
+          Перепроверить
         </button>
         <button
-          className="btn ghost danger"
+          className="btn quiet danger"
           onClick={async () => {
-            if (window.confirm("Удалить кандидата и все его данные?")) {
+            if (window.confirm("Удалить кандидата вместе с резюме и контактами? Это действие нельзя отменить.")) {
               await api.remove(id);
               onDeleted();
             }
           }}
         >
-          Удалить ПДн
+          Удалить данные
         </button>
       </div>
-      {note && <div className="note">{note}</div>}
+      {note && (
+        <p className="note" role="status">
+          {note}
+        </p>
+      )}
 
-      {d.status === "failed" && <div className="alert">Ошибка скрининга: {d.error}</div>}
+      {d.status === "failed" && <div className="alert">Скрининг не прошёл: {d.error}. Нажмите «Перепроверить» или выберите другую модель.</div>}
+
       {!s ? (
-        <p className="muted">Идёт скрининг…</p>
+        <Spinner label="Идёт скрининг" />
       ) : (
         <>
-          {s.summary && <p className="summary">{s.summary}</p>}
+          {s.summary && <p className="lead">{s.summary}</p>}
 
-          <div className="two-col">
+          <div className="pros-cons">
             <div>
-              <h4>Сильные стороны</h4>
-              <ul className="bullets">{s.strengths.map((x, i) => <li key={i}>{x}</li>)}</ul>
+              <h3>Сильные стороны</h3>
+              <ul>{s.strengths.length ? s.strengths.map((x, i) => <li key={i}>{x}</li>) : <li className="muted">Не выделены</li>}</ul>
             </div>
             <div>
-              <h4>Риски</h4>
-              <ul className="bullets risk">{s.risks.length ? s.risks.map((x, i) => <li key={i}>{x}</li>) : <li>Не выявлено</li>}</ul>
+              <h3>Что проверить</h3>
+              <ul className="risks">{s.risks.length ? s.risks.map((x, i) => <li key={i}>{x}</li>) : <li className="muted">Явных рисков нет</li>}</ul>
             </div>
           </div>
 
-          <h4>Соответствие требованиям</h4>
-          <ul className="matrix">
-            {s.matches.map((m) => {
-              const r = reqById[m.requirement_id];
-              return (
-                <li key={m.requirement_id} className={`m-${m.status}`}>
-                  <span className="dot" title={m.status} />
-                  <div>
-                    <div>
-                      {r?.text ?? m.requirement_id} {r?.kind === "nice" && <span className="chip">плюс</span>}
-                    </div>
-                    {m.evidence && <div className="evidence">«{m.evidence}»</div>}
-                    {!m.evidence && m.comment && <div className="muted small">{m.comment}</div>}
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
+          {(["must", "nice"] as const).map((kind) => (
+            <section key={kind} className="reqs">
+              <h3>{kind === "must" ? "Обязательные требования" : "Будет плюсом"}</h3>
+              <ul>
+                {vacancy.requirements
+                  .filter((r) => r.kind === kind)
+                  .map((r) => {
+                    const m = matchBy[r.id];
+                    const status = (m?.status ?? "missing") as MatchStatus;
+                    const detail = m?.evidence || m?.comment;
+                    const open = openReq === r.id;
+                    return (
+                      <li key={r.id} className={`req s-${status}`}>
+                        <button className="req-line" onClick={() => setOpenReq(open ? null : r.id)} aria-expanded={open} disabled={!detail}>
+                          <StatusDot status={status} />
+                          <span>{r.text}</span>
+                        </button>
+                        {open && detail && <p className={m?.evidence ? "evidence" : "muted small"}>{m?.evidence ? `«${m.evidence}»` : detail}</p>}
+                      </li>
+                    );
+                  })}
+              </ul>
+            </section>
+          ))}
 
-          <h4>Вопросы для интервью</h4>
-          <ol className="questions">{s.interview_questions.map((q, i) => <li key={i}>{q}</li>)}</ol>
+          <section className="questions">
+            <h3>Вопросы для интервью</h3>
+            <ol>
+              {s.interview_questions.map((q, i) => (
+                <li key={i}>{q}</li>
+              ))}
+            </ol>
+          </section>
 
           {d.usage && (
-            <div className="usage mono">
-              {d.usage.provider}/{d.usage.model} · {d.usage.input_tokens + d.usage.output_tokens} токенов · ${d.usage.cost_usd.toFixed(5)} ·{" "}
-              {d.usage.latency_ms} мс
-            </div>
+            <p className="usage">
+              Оценила модель {d.usage.provider}/{d.usage.model}: {d.usage.input_tokens + d.usage.output_tokens} токенов, ${d.usage.cost_usd.toFixed(5)}, {d.usage.latency_ms} мс
+            </p>
           )}
         </>
       )}
 
-      <button className="link" onClick={() => setShowResume((x) => !x)}>
-        {showResume ? "Скрыть резюме" : "Показать резюме (контакты скрыты)"}
+      <button className="link" onClick={() => setShowResume((x) => !x)} aria-expanded={showResume}>
+        {showResume ? "Скрыть резюме" : "Показать резюме — контакты скрыты"}
       </button>
       {showResume && <pre className="resume">{d.masked_text}</pre>}
-    </div>
+    </article>
   );
 }
