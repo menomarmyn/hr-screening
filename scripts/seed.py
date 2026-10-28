@@ -25,6 +25,12 @@ def main() -> None:
     p.add_argument("--key", default=os.environ.get("API_KEY", "dev-key"))
     a = p.parse_args()
 
+    req = urllib.request.Request(f"{a.api}/api/vacancies", headers={"X-API-Key": a.key})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        if json.loads(r.read()):
+            print("Демо-данные уже загружены — пропускаю.")
+            return
+
     desc = (DATA / "vacancy_koz_ai_fullstack.txt").read_text(encoding="utf-8")
     v = call(f"{a.api}/api/vacancies", a.key, json.dumps({"title": "Fullstack AI Engineer", "company": "KOZ AI", "description": desc}).encode(), "application/json")
     print(f"Вакансия #{v['id']}: {len(v['requirements'])} требований")
