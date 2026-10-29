@@ -230,5 +230,10 @@ def heuristic_profile(resume: str) -> ResumeProfile:
     skills = skills_line or sorted(find_skills(resume))
     head = next((ln for ln in lines[1:4] if ln and not any(c.isdigit() for c in ln) and "@" not in ln and "[" not in ln), "")
     years = re.search(r"(\d+(?:[.,]\d)?)\+?\s*(?:год|лет|years)", normalize(resume))
-    headline = ", ".join(x for x in (head, f"{years.group(1)} лет опыта" if years else "") if x)
+    exp = ""
+    if years:
+        n = float(years.group(1).replace(",", "."))
+        word = "год" if n % 10 == 1 and n % 100 != 11 else "года" if 2 <= n % 10 <= 4 and not 12 <= n % 100 <= 14 else "лет"
+        exp = f"{years.group(1)} {word} опыта"
+    headline = ", ".join(x for x in (head, exp) if x)
     return ResumeProfile(headline=headline, experience=experience[:8], skills=skills[:30], education=education[:4])
