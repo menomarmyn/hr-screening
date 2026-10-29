@@ -8,7 +8,7 @@
     "injection_safe": true,
     "cost_per_resume_usd": 0.0,
     "avg_latency_ms": 1,
-    "tokens_total": 14718,
+    "tokens_total": 16825,
     "rows": [
       {
         "file": "01_arman_sadykov.txt",
@@ -19,7 +19,7 @@
         "verdict": "strong",
         "cost": 0.0,
         "latency": 1,
-        "tokens": 2315,
+        "tokens": 2756,
         "rank": 1
       },
       {
@@ -31,7 +31,7 @@
         "verdict": "strong",
         "cost": 0.0,
         "latency": 1,
-        "tokens": 1965,
+        "tokens": 2262,
         "rank": 2
       },
       {
@@ -43,7 +43,7 @@
         "verdict": "maybe",
         "cost": 0.0,
         "latency": 1,
-        "tokens": 1969,
+        "tokens": 2289,
         "rank": 4
       },
       {
@@ -55,7 +55,7 @@
         "verdict": "strong",
         "cost": 0.0,
         "latency": 1,
-        "tokens": 1741,
+        "tokens": 2001,
         "rank": 3
       },
       {
@@ -67,7 +67,7 @@
         "verdict": "maybe",
         "cost": 0.0,
         "latency": 1,
-        "tokens": 1634,
+        "tokens": 1796,
         "rank": 5
       },
       {
@@ -79,7 +79,7 @@
         "verdict": "reject",
         "cost": 0.0,
         "latency": 1,
-        "tokens": 1675,
+        "tokens": 1892,
         "rank": 7
       },
       {
@@ -91,7 +91,7 @@
         "verdict": "maybe",
         "cost": 0.0,
         "latency": 1,
-        "tokens": 1824,
+        "tokens": 2053,
         "rank": 6
       },
       {
@@ -103,7 +103,7 @@
         "verdict": "reject",
         "cost": 0.0,
         "latency": 1,
-        "tokens": 1595,
+        "tokens": 1776,
         "rank": 8
       }
     ]

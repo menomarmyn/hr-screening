@@ -37,7 +37,7 @@
 | Требование | Где в проекте |
 |---|---|
 | React + TypeScript | `frontend/` — Vite, строгий TS, React Router, публичный сайт + кабинет HR |
-| Python, FastAPI, REST API | `backend/app/main.py` — ~35 эндпоинтов, OpenAPI на `/docs` |
+| Python, FastAPI, REST API | `backend/app/main.py` — 29 эндпоинтов, OpenAPI на `/docs` |
 | PostgreSQL, проектирование БД | `backend/app/models.py` — пользователи, компания, вакансии, отклики с файлами, чанки, скрининги, журнал интеграций |
 | Redis, Celery | кэш ответов LLM, фоновый разбор резюме с ретраями |
 | LLM: OpenAI, Anthropic, Google, open-source | `app/llm/` — единый интерфейс, 5 провайдеров |
