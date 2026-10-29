@@ -69,11 +69,26 @@ def multipart(fields: dict, files: list[tuple[str, str, bytes, str]]) -> tuple[b
     return out + f"--{b}--\r\n".encode(), f"multipart/form-data; boundary={b}"
 
 
+def wait_for_api(api: str, seconds: int = 90) -> None:
+    import time
+
+    for _ in range(seconds):
+        try:
+            with urllib.request.urlopen(f"{api}/api/health", timeout=2) as r:
+                if r.status == 200:
+                    return
+        except Exception:  # noqa: BLE001
+            pass
+        time.sleep(1)
+    raise SystemExit("API не ответил")
+
+
 def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("--api", default="http://localhost:8000")
     p.add_argument("--invite", default=os.environ.get("HR_INVITE_CODE", "koz-hr-2026"))
     a = p.parse_args()
+    wait_for_api(a.api)
 
     hr = {"Authorization": "Bearer " + account(a.api, "hr@koz.demo", "Айгуль Сапарова", "hr", a.invite)}
     code, vacancies = req("GET", f"{a.api}/api/vacancies", headers=hr)

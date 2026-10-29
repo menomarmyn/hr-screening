@@ -1,5 +1,6 @@
 from functools import lru_cache
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -18,6 +19,8 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql+psycopg://hr:hr@localhost:5432/hr"
     redis_url: str = "redis://localhost:6379/0"
+    # Папка со сборкой фронтенда: если задана, API сам отдаёт сайт (деплой одним контейнером)
+    static_dir: str = ""
     celery_eager: bool = False  # True — задачи выполняются синхронно (dev/тесты)
 
     # LLM: mock | anthropic | openai | gemini | ollama
@@ -44,7 +47,21 @@ class Settings(BaseSettings):
     onec_user: str = ""
     onec_password: str = ""
 
+    @field_validator("database_url")
+    @classmethod
+    def _db_url(cls, v: str) -> str:
+        return _normalize_db_url(v)
+
 
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+
+
+def _normalize_db_url(url: str) -> str:
+    """Хостинги (Render, Heroku) выдают postgres://… — переводим на драйвер psycopg 3."""
+    for prefix in ("postgres://", "postgresql://"):
+        if url.startswith(prefix):
+            return "postgresql+psycopg://" + url[len(prefix):]
+    return url
+

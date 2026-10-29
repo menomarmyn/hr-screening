@@ -502,3 +502,25 @@ def _by_model(screenings: list[Screening]) -> list[dict]:
 def integration_logs(db: Session = Depends(get_db)):
     logs = db.query(IntegrationLog).order_by(IntegrationLog.id.desc()).limit(50).all()
     return [{"id": x.id, "system": x.system, "action": x.action, "candidate_id": x.candidate_id, "status": x.status, "request": x.request, "created_at": str(x.created_at)} for x in logs]
+
+
+# ---------- Сайт из того же контейнера (деплой одним сервисом) ----------
+# Регистрируется последним, чтобы не перехватывать /api/*.
+if settings.static_dir:
+    from pathlib import Path
+
+    from fastapi.responses import FileResponse
+    from fastapi.staticfiles import StaticFiles
+
+    _static = Path(settings.static_dir).resolve()
+    if (_static / "index.html").exists():
+        app.mount("/assets", StaticFiles(directory=_static / "assets"), name="assets")
+
+        @app.get("/{path:path}", include_in_schema=False)
+        def spa(path: str):
+            if path.startswith("api/"):
+                raise HTTPException(404, "Не найдено")
+            file = (_static / path).resolve()
+            if path and file.is_file() and file.is_relative_to(_static):
+                return FileResponse(file)
+            return FileResponse(_static / "index.html")  # маршруты React Router

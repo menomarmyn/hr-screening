@@ -4,6 +4,8 @@ import { api } from "../api";
 import { Eye } from "../illustrations/Eye";
 import { useAuth } from "../lib/auth";
 
+const DEMO = import.meta.env.VITE_DEMO === "true";
+
 export function AuthPage({ mode }: { mode: "login" | "register" }) {
   const [params] = useSearchParams();
   const next = params.get("next");
@@ -27,6 +29,20 @@ export function AuthPage({ mode }: { mode: "login" | "register" }) {
       const r = mode === "login" ? await api.login(email, password) : await api.register({ email, password, full_name: name, role, invite_code: invite });
       signIn(r.token, r.user);
       nav(next && next.startsWith("/") ? next : r.user.role === "hr" ? "/hr" : "/me", { replace: true });
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const demoLogin = async (who: "hr" | "candidate") => {
+    setBusy(true);
+    setError("");
+    try {
+      const r = await api.login(who === "hr" ? "hr@koz.demo" : "candidate@koz.demo", "koz-demo-2026");
+      signIn(r.token, r.user);
+      nav(r.user.role === "hr" ? "/hr" : "/me", { replace: true });
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -101,6 +117,21 @@ export function AuthPage({ mode }: { mode: "login" | "register" }) {
         <button className="btn btn-primary btn-block" disabled={busy}>
           {busy ? "Секунду…" : mode === "login" ? "Войти" : "Создать аккаунт"}
         </button>
+        {DEMO && mode === "login" && (
+          <div className="demo-box">
+            <p>
+              <b>Демо-стенд.</b> Войдите в готовый аккаунт, чтобы посмотреть обе стороны сервиса.
+            </p>
+            <div className="demo-actions">
+              <button type="button" className="btn btn-ghost" disabled={busy} onClick={() => demoLogin("hr")}>
+                Кабинет HR
+              </button>
+              <button type="button" className="btn btn-ghost" disabled={busy} onClick={() => demoLogin("candidate")}>
+                Кабинет кандидата
+              </button>
+            </div>
+          </div>
+        )}
         <p className="auth-switch">
           {mode === "login" ? (
             <>
