@@ -8,6 +8,11 @@ from app.llm.base import ChatTurn, LLMError, LLMProvider, T, ToolCall, ToolSpec,
 GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
 
 
+def _sampling(model: str) -> dict:
+    """Reasoning-модели OpenAI (gpt-5*, o-серия) не принимают temperature — передаём только остальным."""
+    return {} if model.startswith(("gpt-5", "o1", "o3", "o4")) else {"temperature": 0}
+
+
 class OpenAICompatibleProvider(LLMProvider):
     def __init__(self, name: str, model: str, api_key: str, base_url: str | None = None):
         super().__init__(model)
@@ -25,7 +30,7 @@ class OpenAICompatibleProvider(LLMProvider):
         for attempt in range(2):
             t0 = self._timer()
             resp = self.client.chat.completions.create(
-                model=self.model, messages=messages, response_format={"type": "json_object"}, temperature=0
+                model=self.model, messages=messages, response_format={"type": "json_object"}, **_sampling(self.model)
             )
             u = resp.usage
             total.add(Usage(self.name, self.model, u.prompt_tokens if u else 0, u.completion_tokens if u else 0, self._ms(t0)))
@@ -64,7 +69,7 @@ class OpenAICompatibleProvider(LLMProvider):
             model=self.model,
             messages=self._convert(system, messages),
             tools=[{"type": "function", "function": {"name": t.name, "description": t.description, "parameters": t.parameters}} for t in tools],
-            temperature=0,
+            **_sampling(self.model),
         )
         u = resp.usage
         usage = Usage(self.name, self.model, u.prompt_tokens if u else 0, u.completion_tokens if u else 0, self._ms(t0))

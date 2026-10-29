@@ -36,8 +36,8 @@ if not exist .venv (
 )
 echo [Python] Ставлю зависимости...
 .venv\Scripts\python -m pip install -q --upgrade pip
-.venv\Scripts\python -m pip install -q -r requirements.txt || .venv\Scripts\python -m pip install -q fastapi "uvicorn[standard]" sqlalchemy "psycopg[binary]" pgvector pydantic pydantic-settings python-multipart pypdf python-docx anthropic openai httpx celery redis mcp
-set DATABASE_URL=sqlite:///./dev.db
+.venv\Scripts\python -m pip install -q -r requirements.txt || .venv\Scripts\python -m pip install -q fastapi "uvicorn[standard]" sqlalchemy "psycopg[binary]" pgvector pydantic pydantic-settings python-multipart pypdf python-docx anthropic openai httpx celery redis mcp PyJWT
+set DATABASE_URL=sqlite:///./app.db
 set CELERY_EAGER=true
 set REDIS_URL=redis://localhost:6379/0
 start "HR Screener API" cmd /k ".venv\Scripts\python -m uvicorn app.main:app --port 8000"
@@ -50,6 +50,7 @@ call :wait_api
 backend\.venv\Scripts\python scripts\seed.py
 timeout /t 3 >nul
 start "" http://localhost:5173
+echo Демо-вход: HR hr@koz.demo / koz-demo-2026, кандидат candidate@koz.demo / koz-demo-2026
 echo Готово: UI http://localhost:5173 , API http://localhost:8000/docs
 goto end
 

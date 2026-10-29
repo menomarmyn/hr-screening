@@ -7,6 +7,7 @@ import json
 import re
 from typing import Any
 
+from app.heuristics import heuristic_profile, heuristic_vacancy
 from app.knowledge import find_skills, normalize, skill_positions
 from app.llm.base import ChatTurn, LLMProvider, T, ToolCall, ToolSpec, Usage
 from app.schemas import Requirement, RequirementList, RequirementMatch, ScreeningResult
@@ -110,9 +111,12 @@ class MockProvider(LLMProvider):
 
     def structured(self, system: str, user: str, schema: type[T], task: str = "", payload: Any = None) -> tuple[T, Usage]:
         if task == "extract_requirements":
-            result: Any = RequirementList(requirements=extract_requirements(payload))
+            result: Any = RequirementList(requirements=heuristic_vacancy(payload).requirements)
+        elif task == "parse_vacancy":
+            result = heuristic_vacancy(payload)
         elif task == "screen":
             result = heuristic_screen(payload["requirements"], payload["resume"])
+            result.profile = heuristic_profile(payload["resume"])
         else:
             raise ValueError(f"Mock не умеет задачу {task}")
         usage = Usage(self.name, self.model, _tokens(system + user), _tokens(result.model_dump_json()), 1)

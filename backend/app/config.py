@@ -4,10 +4,17 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    # .env в корне проекта или в backend/ — API запускается из backend/
+    model_config = SettingsConfigDict(env_file=("../.env", ".env"), extra="ignore")
 
     app_name: str = "KOZ HR Screener"
-    api_key: str = "dev-key"  # простой ключ для доступа к API (заголовок X-API-Key)
+    api_key: str = "dev-key"  # сервисный ключ (скрипты, MCP): заголовок X-API-Key даёт права HR
+
+    # Авторизация пользователей
+    jwt_secret: str = "dev-only-secret-change-me-in-production-0000"  # в production — длинная случайная строка
+    jwt_ttl_hours: int = 72
+    # HR-аккаунт можно создать только с этим кодом (выдаёт администратор). Пусто — регистрация HR закрыта
+    hr_invite_code: str = "koz-hr-2026"
 
     database_url: str = "postgresql+psycopg://hr:hr@localhost:5432/hr"
     redis_url: str = "redis://localhost:6379/0"

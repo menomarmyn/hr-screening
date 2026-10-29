@@ -4,7 +4,7 @@ from app.llm.base import ChatTurn, LLMError, LLMProvider, ToolCall, ToolSpec, Us
 DEFAULT_MODELS = {
     "mock": "heuristic-v1",
     "anthropic": "claude-haiku-5-5",
-    "openai": "gpt-4o-mini",
+    "openai": "gpt-5-mini",
     "gemini": "gemini-2.5-flash",
     "ollama": "qwen2.5:7b",
 }

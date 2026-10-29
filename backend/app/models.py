@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, String, Text, func
+from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, LargeBinary, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import TypeDecorator
 
@@ -38,6 +38,15 @@ class Vacancy(Base):
     description: Mapped[str] = mapped_column(Text)
     # [{"id": "r1", "text": "...", "kind": "must"|"nice", "category": "..."}]
     requirements: Mapped[list] = mapped_column(JSON, default=list)
+    # Публичная карточка вакансии (собирается ИИ из свободного текста, HR правит)
+    summary: Mapped[str] = mapped_column(Text, default="")
+    responsibilities: Mapped[list] = mapped_column(JSON, default=list)
+    conditions: Mapped[list] = mapped_column(JSON, default=list)
+    location: Mapped[str] = mapped_column(String(255), default="")
+    employment: Mapped[str] = mapped_column(String(255), default="")
+    salary: Mapped[str] = mapped_column(String(255), default="")
+    # draft — видна только HR, open — опубликована, closed — приём откликов закрыт
+    status: Mapped[str] = mapped_column(String(16), default="open")
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     screenings: Mapped[list["Screening"]] = relationship(back_populates="vacancy", cascade="all, delete")
@@ -57,6 +66,14 @@ class Candidate(Base):
     status: Mapped[str] = mapped_column(String(32), default="uploaded")
     error: Mapped[str] = mapped_column(Text, default="")
     crm_id: Mapped[str] = mapped_column(String(64), default="")
+    # Отклик с сайта: кто подал, сопроводительное, этап отбора, оригинал файла
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    source: Mapped[str] = mapped_column(String(16), default="upload")  # upload — загрузил HR, site — отклик с сайта
+    cover_letter: Mapped[str] = mapped_column(Text, default="")
+    # new -> review -> interview -> offer | rejected
+    stage: Mapped[str] = mapped_column(String(16), default="new")
+    file_bytes: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True, deferred=True)
+    file_mime: Mapped[str] = mapped_column(String(64), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     chunks: Mapped[list["ResumeChunk"]] = relationship(back_populates="candidate", cascade="all, delete")
@@ -109,3 +126,31 @@ class IntegrationLog(Base):
     response: Mapped[dict] = mapped_column(JSON, default=dict)
     status: Mapped[str] = mapped_column(String(16))  # ok | dry_run | error
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    full_name: Mapped[str] = mapped_column(String(255), default="")
+    password_hash: Mapped[str] = mapped_column(String(255))
+    role: Mapped[str] = mapped_column(String(16))  # candidate | hr
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class CompanyProfile(Base):
+    """Публичная страница компании. Одна запись, редактирует HR."""
+
+    __tablename__ = "company_profile"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(255), default="")
+    tagline: Mapped[str] = mapped_column(String(500), default="")
+    about: Mapped[str] = mapped_column(Text, default="")
+    # [{"title": "...", "text": "..."}]
+    highlights: Mapped[list] = mapped_column(JSON, default=list)
+    location: Mapped[str] = mapped_column(String(255), default="")
+    website: Mapped[str] = mapped_column(String(255), default="")
+    contact_email: Mapped[str] = mapped_column(String(255), default="")
